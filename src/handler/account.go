@@ -87,7 +87,16 @@ func Create(ctx *gin.Context) {
 //Update ...
 func Update(ctx *gin.Context) {
 
+	cookie, err := middleware.GetTokenCookie(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+	tokenString := cookie.Value
+
 	var updateRequest proto.UpdateRequest
+	updateRequest.Token = tokenString
+
 	if err := ctx.ShouldBindJSON(&updateRequest); err != nil {
 		ctx.JSON(http.StatusUnprocessableEntity, err)
 		return
