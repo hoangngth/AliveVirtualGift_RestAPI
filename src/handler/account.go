@@ -11,22 +11,20 @@ import (
 	"AliveVirtualGift_RestAPI/src/middleware"
 )
 
+//Login ...
 func Login(ctx *gin.Context) {
 
 	var loginRequest proto.LoginRequest
 	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+		ctx.JSON(http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	request := &loginRequest
-
 	sc := connection.DialToAccountServiceServer()
-	response, err := sc.ClientAccountService.Login(ctx, request)
-
+	response, err := sc.ClientAccountService.Login(ctx, &loginRequest)
 	if err != nil {
 		log.Print(err)
-		ctx.JSON(http.StatusUnauthorized, "Invalid login details")
+		ctx.JSON(http.StatusUnauthorized, err)
 		return
 	}
 
@@ -35,9 +33,11 @@ func Login(ctx *gin.Context) {
 		Value:    response.Token,
 		HttpOnly: true,
 	})
+
 	ctx.JSON(http.StatusOK, response)
 }
 
+//Logout ...
 func Logout(ctx *gin.Context) {
 
 	cookie, err := middleware.GetTokenCookie(ctx)
@@ -61,17 +61,66 @@ func Logout(ctx *gin.Context) {
 		Value:    "",
 		HttpOnly: true,
 	})
+
 	ctx.JSON(http.StatusOK, response)
 }
 
+//Create ...
 func Create(ctx *gin.Context) {
 
+	var createRequest proto.CreateRequest
+	if err := ctx.ShouldBindJSON(&createRequest); err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	sc := connection.DialToAccountServiceServer()
+	response, err := sc.ClientAccountService.Create(ctx, &createRequest)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
 
+//Update ...
 func Update(ctx *gin.Context) {
 
+	var updateRequest proto.UpdateRequest
+	if err := ctx.ShouldBindJSON(&updateRequest); err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	sc := connection.DialToAccountServiceServer()
+	response, err := sc.ClientAccountService.Update(ctx, &updateRequest)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
 
+//Show ...
 func Show(ctx *gin.Context) {
 
+	cookie, err := middleware.GetTokenCookie(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+	tokenString := cookie.Value
+
+	sc := connection.DialToAccountServiceServer()
+	response, err := sc.ClientAccountService.Show(ctx, &proto.ShowRequest{
+		Token: tokenString,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
