@@ -29,9 +29,9 @@ func main() {
 	authorized := router.Group("/")
 	authorized.Use(middleware.TokenAuth)
 	{
-		router.POST("/logout", handler.Logout)
-		router.GET("/account/show", handler.Show)
-		router.PUT("/account/update", handler.Update)
+		authorized.POST("/logout", handler.Logout)
+		authorized.GET("/account/show", handler.Show)
+		authorized.PUT("/account/update", handler.Update)
 	}
 
 	log.Fatal(router.Run(":" + os.Getenv("REST_API_PORT")))
